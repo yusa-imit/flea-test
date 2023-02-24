@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import EventSource, {CustomEvent} from 'react-native-sse';
+import EventSource, {CustomEvent, ErrorEvent} from 'react-native-sse';
 
 interface SSEPayload {
   auctionId: number;
@@ -7,27 +7,41 @@ interface SSEPayload {
 }
 export default function useSSE() {
   const [data, setData] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
-    const eventSource = new EventSource<'sse.auction_viewed'>(
-      'https://api.fleaauction.world/v2/sse/event',
-    );
-    eventSource.addEventListener('open', () => {
-      console.log('opened');
-    });
-    eventSource.addEventListener('sse.auction_viewed', e => {
-      const {data} = e as CustomEvent<'sse.auction_viewed'>;
-      if (data === null) return;
-      const {auctionId, viewCount} = JSON.parse(data) as SSEPayload;
-      setData(p => {
-        return Object.assign({}, p, {[auctionId.toString()]: viewCount});
+    let eventSource: null | EventSource<'sse.auction_viewed'> = null;
+    function connect() {
+      eventSource = new EventSource<'sse.auction_viewed'>(
+        'https://api.fleaauction.world/v2/sse/event',
+      );
+      eventSource.addEventListener('open', () => {
+        console.log('opened');
+        setLoading(false);
       });
-    });
-    eventSource.addEventListener('error', event => {
-      console.log(event);
-    });
+      eventSource.addEventListener('sse.auction_viewed', e => {
+        const {data} = e as CustomEvent<'sse.auction_viewed'>;
+        if (data === null) return;
+        const {auctionId, viewCount} = JSON.parse(data) as SSEPayload;
+        setData(p => {
+          return Object.assign({}, p, {[auctionId.toString()]: viewCount});
+        });
+      });
+      eventSource.addEventListener('error', () => {
+        (eventSource as EventSource<'sse.auction_viewed'>).close();
+      });
+    }
+    connect();
+    const interval = setInterval(() => {
+      console.log('try reconnect');
+      if (eventSource === null) connect();
+      else return;
+    }, 6000);
     return () => {
-      eventSource.removeAllEventListeners();
-      eventSource.close();
+      if (eventSource !== null) {
+        eventSource.removeAllEventListeners();
+        eventSource.close();
+      }
+      clearInterval(interval);
     };
   }, []);
   return data;
