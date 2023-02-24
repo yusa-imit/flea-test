@@ -5,8 +5,8 @@
  * @format
  */
 
-import React from 'react';
-import type { PropsWithChildren } from 'react';
+import React, {useMemo} from 'react';
+import type {PropsWithChildren} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -25,42 +25,12 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
-import EventSource from "react-native-sse";
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({ children, title }: SectionProps): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  const es = new EventSource("https://api.fleaauction.world/v2/sse/event");
-  es.addEventListener("message", (e) => {
-    console.log(e);
-  })
-  console.log(es);
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+import useSSE from './util/useSSE';
+import {shuffle} from './util/shuffle';
+import {auctionIds} from './constants/auctionIds';
+import HorizonList from './ui/HorizonList';
+import {GlobalStyles} from './ui/GlobalStyles';
+import {GlobalStyleSheet} from './ui/GlobalStyleSheet';
 
 function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -68,57 +38,83 @@ function App(): JSX.Element {
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+  const renderList = useMemo(() => {
+    return [shuffle(auctionIds), shuffle(auctionIds)];
+  }, []);
 
+  const data = useSSE();
+  console.log(data);
   return (
     <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+      <View style={[styles.mainView]}>
+        <StatusBar
+          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+          backgroundColor={backgroundStyle.backgroundColor}
+        />
+        <View style={[styles.header]}>
+          <Text style={styles.headerText}>Header</Text>
         </View>
-      </ScrollView>
+        {renderList.map((list, index) => (
+          <View key={`auction-tree-${index}`} style={styles.horizonContainer}>
+            <Text style={styles.horizonContainerInnerText}>{`Scroll Area ${
+              index + 1
+            }`}</Text>
+            <HorizonList status={data} itemList={list} />
+          </View>
+        ))}
+        <View style={styles.tabBar}>
+          <Text style={styles.tabBarText}>TabBar</Text>
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  mainView: {
+    height: '100%',
+    backgroundColor: 'aliceblue',
+    gap: GlobalStyles.margin.md,
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+  header: {
+    ...GlobalStyleSheet.flex(1),
+    ...GlobalStyleSheet.vertCenter,
+    padding: GlobalStyles.padding.md,
+    height: '10%',
+    maxHeight: 56,
+    backgroundColor: 'powderblue',
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
+  headerText: {
+    fontSize: GlobalStyles.fontSize.lg,
+    fontWeight: GlobalStyles.fontWeight.bold,
   },
-  highlight: {
-    fontWeight: '700',
+  tabBar: {
+    ...GlobalStyleSheet.flex(2),
+    ...GlobalStyleSheet.vertCenter,
+    ...GlobalStyleSheet.horizCenter,
+    padding: GlobalStyles.padding.md,
+    height: '20%',
+    maxHeight: 80,
+    backgroundColor: 'skyblue',
+  },
+  tabBarText: {
+    fontSize: GlobalStyles.fontSize.lg,
+    fontWeight: GlobalStyles.fontWeight.bold,
+    color: GlobalStyles.color.white,
+  },
+  horizonContainer: {
+    ...GlobalStyleSheet.flex(3),
+    ...GlobalStyleSheet.vertCenter,
+    paddingTop: GlobalStyles.padding.md,
+    paddingBottom: GlobalStyles.padding.md,
+    flexShrink: 1,
+  },
+  horizonContainerInnerText: {
+    marginBottom: GlobalStyles.margin.sm,
+    paddingLeft: GlobalStyles.padding.md,
+    fontSize: GlobalStyles.fontSize.md,
+    fontWeight: GlobalStyles.fontWeight.bold,
+    color: 'steelblue',
   },
 });
 
