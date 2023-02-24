@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import type {PropsWithChildren} from 'react';
+import type { PropsWithChildren } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -25,12 +25,19 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
+import EventSource from "react-native-sse";
+
 type SectionProps = PropsWithChildren<{
   title: string;
 }>;
 
-function Section({children, title}: SectionProps): JSX.Element {
+function Section({ children, title }: SectionProps): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
+  const es = new EventSource("https://api.fleaauction.world/v2/sse/event");
+  es.addEventListener("message", (e) => {
+    console.log(e);
+  })
+  console.log(es);
   return (
     <View style={styles.sectionContainer}>
       <Text
