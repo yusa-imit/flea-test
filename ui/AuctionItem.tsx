@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useRef} from 'react';
 import {Animated, StyleSheet, Text, View} from 'react-native';
 import {GlobalStyles} from './GlobalStyles';
 import {GlobalStyleSheet} from './GlobalStyleSheet';

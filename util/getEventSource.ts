@@ -6,6 +6,8 @@ interface GetEventSourceOptions {
   onMessage?: Record<string, (evt: MessageEvent) => void>;
 }
 
+// Event Source Getter function
+// Use react dispatch actions in onopen event listener
 export function getEventSource(
   url: string,
   options: GetEventSourceOptions = {},

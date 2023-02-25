@@ -5,10 +5,10 @@
  * @format
  */
 
-import React, {useMemo} from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {useCallback, useState} from 'react';
 import {
-  ActivityIndicator,
+  Dimensions,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -18,22 +18,15 @@ import {
   View,
 } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
 
-import useSSE from './util/useSSE';
-import {shuffle} from './util/shuffle';
 import {auctionIds} from './constants/auctionIds';
-import HorizonList from './ui/HorizonList';
 import {GlobalStyles} from './ui/GlobalStyles';
 import {GlobalStyleSheet} from './ui/GlobalStyleSheet';
-import {BlurView} from '@react-native-community/blur';
+import HorizonList from './ui/HorizonList';
 import {LoadingScreen} from './ui/LoadingScreen';
+import {shuffle} from './util/shuffle';
+import useSSE from './util/useSSE';
 
 function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -41,34 +34,46 @@ function App(): JSX.Element {
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
-  const renderList = useMemo(() => {
+  const setRandomList = useCallback(() => {
     return [shuffle(auctionIds), shuffle(auctionIds)];
   }, []);
-
+  const [renderList, setRenderList] = useState(setRandomList());
+  const refreshControl = useCallback(() => {
+    setRenderList(setRandomList());
+  }, [setRenderList, setRandomList]);
   const [data, loading] = useSSE();
-  console.log(data);
+  const window = Dimensions.get('window');
   return (
     <SafeAreaView style={backgroundStyle}>
-      <View style={[styles.mainView]}>
-        <StatusBar
-          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-          backgroundColor={backgroundStyle.backgroundColor}
-        />
-        <View style={[styles.header]}>
-          <Text style={styles.headerText}>Header</Text>
-        </View>
-        {renderList.map((list, index) => (
-          <View key={`auction-tree-${index}`} style={styles.horizonContainer}>
-            <Text style={styles.horizonContainerInnerText}>{`Scroll Area ${
-              index + 1
-            }`}</Text>
-            <HorizonList status={data} itemList={list} />
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={false} onRefresh={refreshControl} />
+        }>
+        <View
+          style={[
+            styles.mainView,
+            {height: window.height, width: window.width},
+          ]}>
+          <StatusBar
+            barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+            backgroundColor={backgroundStyle.backgroundColor}
+          />
+          <View style={[styles.header]}>
+            <Text style={styles.headerText}>Header</Text>
           </View>
-        ))}
-        <View style={styles.tabBar}>
-          <Text style={styles.tabBarText}>TabBar</Text>
+          {renderList.map((list, index) => (
+            <View key={`auction-tree-${index}`} style={styles.horizonContainer}>
+              <Text style={styles.horizonContainerInnerText}>{`Scroll Area ${
+                index + 1
+              }`}</Text>
+              <HorizonList status={data} idList={list} />
+            </View>
+          ))}
+          <View style={styles.tabBar}>
+            <Text style={styles.tabBarText}>TabBar</Text>
+          </View>
         </View>
-      </View>
+      </ScrollView>
       <LoadingScreen render={loading} isDarkMode={isDarkMode} />
     </SafeAreaView>
   );
@@ -76,7 +81,6 @@ function App(): JSX.Element {
 
 const styles = StyleSheet.create({
   mainView: {
-    height: '100%',
     backgroundColor: 'aliceblue',
     gap: GlobalStyles.margin.md,
   },

@@ -1,24 +1,33 @@
-import {ScrollView, ScrollViewProps, StyleSheet} from 'react-native';
+import {useCallback, useState} from 'react';
+import {
+  RefreshControl,
+  ScrollView,
+  ScrollViewProps,
+  StyleSheet,
+} from 'react-native';
+import {auctionIds} from '../constants/auctionIds';
+import {shuffle} from '../util/shuffle';
 import AuctionItem from './AuctionItem';
 import {GlobalStyles} from './GlobalStyles';
 
 interface HorizonListProps extends ScrollViewProps {
-  itemList: string[];
+  idList: string[];
   status: Record<string, number>;
 }
 
 export default function HorizonList({
-  itemList,
   status,
   style,
+  idList = auctionIds,
   ...etc
 }: HorizonListProps) {
   return (
     <ScrollView
       horizontal
       style={StyleSheet.compose(styles.default, style)}
+      showsVerticalScrollIndicator={false}
       {...etc}>
-      {itemList.map(value => (
+      {idList.map(value => (
         <AuctionItem
           auctionId={value}
           viewCount={status[value] ?? 0}
