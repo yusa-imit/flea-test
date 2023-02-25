@@ -10,10 +10,9 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-native-community/blur": "^4.3.0",
     "react": "18.2.0",
-    "react-native": "0.71.3",
-    "react-native-sse": "^1.1.0",
-    "rn-eventsource-reborn": "^1.0.5"
+    "react-native": "0.71.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
@@ -21,8 +20,10 @@
     "@babel/runtime": "^7.20.0",
     "@react-native-community/eslint-config": "^3.2.0",
     "@tsconfig/react-native": "^2.0.2",
+    "@types/eventsource": "^1.1.11",
     "@types/jest": "^29.2.1",
     "@types/react": "^18.0.24",
+    "@types/react-native-event-source": "^1.1.0",
     "@types/react-test-renderer": "^18.0.0",
     "babel-jest": "^29.2.1",
     "eslint": "^8.19.0",
