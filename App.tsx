@@ -8,6 +8,7 @@
 import React, {useMemo} from 'react';
 import type {PropsWithChildren} from 'react';
 import {
+  ActivityIndicator,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -31,6 +32,8 @@ import {auctionIds} from './constants/auctionIds';
 import HorizonList from './ui/HorizonList';
 import {GlobalStyles} from './ui/GlobalStyles';
 import {GlobalStyleSheet} from './ui/GlobalStyleSheet';
+import {BlurView} from '@react-native-community/blur';
+import {LoadingScreen} from './ui/LoadingScreen';
 
 function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -42,7 +45,7 @@ function App(): JSX.Element {
     return [shuffle(auctionIds), shuffle(auctionIds)];
   }, []);
 
-  const data = useSSE();
+  const [data, loading] = useSSE();
   console.log(data);
   return (
     <SafeAreaView style={backgroundStyle}>
@@ -66,6 +69,7 @@ function App(): JSX.Element {
           <Text style={styles.tabBarText}>TabBar</Text>
         </View>
       </View>
+      <LoadingScreen render={loading} isDarkMode={isDarkMode} />
     </SafeAreaView>
   );
 }
